@@ -94,7 +94,7 @@ object PathScan {
 
   def empty: PathScan = PathScan(SortedSet.empty, 0, 0)
 
-  def scan[R: _filesystem: _config: _throwableEither](path: FilePath): Eff[R, PathScan] = path match {
+  def scan[R: _filesystem: _config: _throwableEither: _task](path: FilePath): Eff[R, PathScan] = path match {
     case file: File =>
       for {
         fs <- FileSize.ofFile(file)
@@ -105,7 +105,7 @@ object PathScan {
         filesystem <- ask[R, Filesystem]
         topN <- PathScan.takeTopN
         files <- catchNonFatalThrowable(filesystem.listFiles(dir))
-        concurrentChildScans <- files.traverse(PathScan.scan[R](_))
+        concurrentChildScans <- Eff.traverseA(files)(files => taskSuspend(Task.eval(PathScan.scan[R](files))))
       }
       yield concurrentChildScans.combineAll(topN)
   }

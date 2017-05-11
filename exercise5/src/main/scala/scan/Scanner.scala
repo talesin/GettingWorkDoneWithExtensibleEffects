@@ -118,6 +118,9 @@ object PathScan {
     case file: File =>
       for {
         fs <- FileSize.ofFile(file)
+        _ <- {
+          tell(Log.debug(s"File ${file.path} Size ${fs.size} B"))
+        }
       }
       yield PathScan(SortedSet(fs), fs.size, 1)
     case dir: Directory =>

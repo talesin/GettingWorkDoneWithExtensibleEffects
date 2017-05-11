@@ -59,7 +59,10 @@ object PathScan {
 
     //The combine operation of a Monoid should yield a combined, summary PathScan based on the two inputs
     //Only the largest `n` files should be included in the combined scan
-    def combine(p1: PathScan, p2: PathScan): PathScan = ???
+    def combine(p1: PathScan, p2: PathScan): PathScan = {
+      val fs = (p1.largestFiles ++ p2.largestFiles).takeRight(n)
+      PathScan(fs, p1.totalSize + p2.totalSize, p1.totalCount + p2.totalCount)
+    }
   }
 
 }
